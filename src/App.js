@@ -1,21 +1,47 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
+
+import Chatbox from "./components/Chatbox";
+
 import './App.css';
 
 class App extends Component {
+  state = {
+    from: 'anonymus',
+    content: ''
+  };
+
+  componentDidMount() {
+    const from = window.prompt('username');
+    from && this.setState({ from });
+  }
+
   render() {
+    const allChats = this.props.allChatsQuery.allChats || [];
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div>
+        <div className="container">
+          <h2>Chats</h2>
+          {allChats.map(message => (
+            <Chatbox key={message.id} message={message} />
+          ))}
+        </div>
       </div>
     );
   }
 }
 
-export default App;
+const ALL_CHATS_QUERY = gql`
+  query AllChatsQuery {
+    allChats {
+      id
+      createdAt
+      from
+      content
+    }
+  }
+`;
+
+export default graphql(ALL_CHATS_QUERY, { name: 'allChatsQuery' })(App);

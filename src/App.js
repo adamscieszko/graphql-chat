@@ -16,7 +16,36 @@ class App extends Component {
   componentDidMount() {
     const from = window.prompt('username');
     from && this.setState({ from });
+    this._subscribeToNewChats();
   }
+
+  _subscribeToNewChats = () => {
+    this.props.allChatsQuery.subscribeToMore({
+      document: gql`
+        subscription {
+          Chat(filter: { mutation_in: [CREATED] }) {
+            node {
+              id
+              from
+              content
+              createdAt
+            }
+          }
+        }
+      `,
+      updateQuery: (previous, { subscriptionData }) => {
+        const newChatLinks = [
+          ...previous.allChats,
+          subscriptionData.data.Chat.node
+        ];
+        const result = {
+          ...previous,
+          allChats: newChatLinks
+        };
+        return result;
+      }
+    });
+  };
 
   _createChat = async e => {
     if (e.key === 'Enter') {
